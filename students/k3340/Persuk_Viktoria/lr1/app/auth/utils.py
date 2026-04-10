@@ -9,14 +9,14 @@ from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import select
 
-from app.models.user import User
+from models.user import User
 from connector import get_session
 
 
 load_dotenv()
 
 pwd_context = CryptContext(schemes=['bcrypt'])
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/login')
 
 jwt_secret = os.getenv('JWT_SECRET')
 jwt_algorithm = os.getenv('JWT_ALGORITHM')
@@ -35,7 +35,7 @@ def hash_password(password: str) -> str:
     Returns:
         Hashed password string
     """
-    return pwd_context.hash(password)
+    return pwd_context.hash(password[:72])
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -62,7 +62,7 @@ def create_access_token(data: dict) -> str:
     """
     expire_time = datetime.now() + timedelta(minutes=int(jwt_expire_time))
     data['exp'] = expire_time
-    return jwt.encode(data, jwt_secret, jwt_algorithm)
+    return jwt.encode(data, jwt_secret, algorithm=jwt_algorithm)
 
 
 def verify_token(token: str) -> dict:
@@ -78,7 +78,7 @@ def verify_token(token: str) -> dict:
         HTTPException: 401 if the token is expired or invalid
     """
     try:
-        return jwt.decode(token, jwt_secret, jwt_algorithm)
+        return jwt.decode(token, jwt_secret, algorithms=[jwt_algorithm])
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail='Token is expired')
     except jwt.InvalidTokenError:
@@ -102,7 +102,7 @@ def get_current_user(
         HTTPException: 401 if the token is invalid, 404 if the user is not found
     """
     user_data = verify_token(token)
-    user_id = user_data['sub']
+    user_id = int(user_data['sub'])
 
     user_db = session.exec(select(User).where(User.id == user_id)).first()
 

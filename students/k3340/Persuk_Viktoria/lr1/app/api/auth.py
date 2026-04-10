@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import select
 
 from models.user import User
@@ -55,7 +55,7 @@ def register_user(
 
 @router.post('/login')
 def login_user(
-    user_data: UserLogin,
+    user_data: OAuth2PasswordRequestForm = Depends(),
     session=Depends(get_session)
 ) -> TokenResponse:
     """Authenticate a user and return a JWT token
@@ -67,7 +67,7 @@ def login_user(
     Returns:
         JWT access token
     """
-    user_db = session.exec(select(User).where(User.email == user_data.email)).first()
+    user_db = session.exec(select(User).where(User.email == user_data.username)).first()
     if not user_db:
         raise HTTPException(status_code=401, detail='Password or email is incorrect')
 
@@ -75,7 +75,7 @@ def login_user(
     hashed_password = user_db.password_hash
 
     if verify_password(curr_password, hashed_password):
-        token = create_access_token({'sub': user_db.id})
+        token = create_access_token({'sub': str(user_db.id)})
         return TokenResponse(
             access_token=token,
             token_type='bearer'

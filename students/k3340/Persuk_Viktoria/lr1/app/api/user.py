@@ -19,6 +19,19 @@ def get_user_by_id(
     current_user: User = Depends(get_current_user),
     session=Depends(get_session)
 ) -> UserRead:
+    """Get a user by their ID
+
+    Args:
+        id: User ID to look up
+        current_user: Authenticated user (extracted from JWT token)
+        session: Database session
+
+    Returns:
+        User data (without password)
+
+    Raises:
+        HTTPException: 404 if the user is not found
+    """
     user_db = session.exec(select(User).where(User.id == id)).first()
 
     if not user_db:
@@ -34,6 +47,20 @@ def update_user_by_id(
     current_user: User = Depends(get_current_user),
     session=Depends(get_session)
 ) -> UserRead:
+    """Update a user's data by their ID
+
+    Args:
+        id: User ID to update
+        data: Fields to update (password and/or full_name)
+        current_user: Authenticated user (extracted from JWT token)
+        session: Database session
+
+    Returns:
+        Updated user data (without password)
+
+    Raises:
+        HTTPException: 403 if the user tries to update another user's data
+    """
     if current_user.id != id:
         raise HTTPException(status_code=403, detail='Forbidden!!!')
 
@@ -56,6 +83,19 @@ def delete_user_by_id(
     current_user: User = Depends(get_current_user),
     session=Depends(get_session)
 ):
+    """Delete a user by their ID
+
+    Args:
+        id: User ID to delete
+        current_user: Authenticated user (extracted from JWT token)
+        session: Database session
+
+    Returns:
+        Confirmation message
+
+    Raises:
+        HTTPException: 403 if the user tries to delete another user's account
+    """
     if current_user.id != id:
         raise HTTPException(status_code=403, detail='Forbidden!!!')
 

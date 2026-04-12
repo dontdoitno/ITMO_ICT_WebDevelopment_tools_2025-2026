@@ -6,11 +6,25 @@ from sqlmodel import SQLModel, Field
 
 
 class TransactionType(str, Enum):
+    """Enum representing the type of a financial transaction"""
     income = 'income'
     expense = 'expense'
 
 
 class Transaction(SQLModel, table=True):
+    """Database model representing a financial transaction
+
+    Attributes:
+        id: Unique transaction identifier (primary key)
+        user_id: Foreign key referencing the transaction owner
+        wallet_id: Foreign key referencing the associated wallet
+        type: Transaction type (income or expense)
+        amount: Transaction amount (must be greater than 0)
+        description: Optional text description of the transaction
+        transaction_date: Date when the transaction occurred (defaults to current date)
+        created_at: Timestamp of record creation (auto-filled)
+        updated_at: Timestamp of last record update (auto-updated)
+    """
     id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key='user.id')
     wallet_id: int = Field(foreign_key='wallet.id')

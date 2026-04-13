@@ -29,7 +29,7 @@ class Transaction(SQLModel, table=True):
     user_id: int = Field(foreign_key='user.id')
     wallet_id: int = Field(foreign_key='wallet.id')
     type: TransactionType
-    amount: float = Field(gt=0)
+    amount: float = Field(default=0.0)
     description: Optional[str] = None
     transaction_date: date = Field(
         sa_column=Column(

@@ -24,6 +24,10 @@ class TransactionCreate(TransactionBase):
 
     Attributes:
         wallet_id: ID of the wallet to associate the transaction with
+        type: Transaction type (income or expense)
+        amount: Transaction amount
+        description: Text description of the transaction
+        transaction_date: Date when the transaction occurred
     """
     wallet_id: int
 
@@ -36,6 +40,10 @@ class TransactionRead(TransactionBase):
         wallet_id: ID of the associated wallet
         user_id: ID of the transaction owner
         created_at: Transaction creation timestamp
+        type: Transaction type (income or expense)
+        amount: Transaction amount
+        description: Text description of the transaction
+        transaction_date: Date when the transaction occurred
     """
     id: int
     wallet_id: int

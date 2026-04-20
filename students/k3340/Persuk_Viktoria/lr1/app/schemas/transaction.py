@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from models.transaction import TransactionType
+
 
 class TransactionBase(BaseModel):
     """Base schema with common transaction fields
@@ -13,7 +15,7 @@ class TransactionBase(BaseModel):
         description: Text description of the transaction
         transaction_date: Date when the transaction occurred
     """
-    type: str
+    type: TransactionType
     amount: float
     description: str
     transaction_date: date

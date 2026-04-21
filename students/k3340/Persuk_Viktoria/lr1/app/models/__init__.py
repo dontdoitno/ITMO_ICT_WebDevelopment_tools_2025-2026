@@ -4,3 +4,6 @@ from models.wallet import Wallet
 from models.budget import Budget
 from models.category import Category
 from models.goal import Goal
+from models.goal_transaction import GoalTransaction
+from models.transaction_category import TransactionCategory
+from models.notification import Notification

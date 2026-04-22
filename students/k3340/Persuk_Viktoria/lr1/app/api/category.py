@@ -32,7 +32,6 @@ def create_category(
     new_category = Category(
         user_id=current_user.id,
         name=data.name,
-        type=data.type
     )
 
     session.add(new_category)
@@ -68,8 +67,6 @@ def update_category(
 
     if data.name is not None:
         category_db.name = data.name
-    if data.type is not None:
-        category_db.type = data.type
 
     session.add(category_db)
     session.commit()

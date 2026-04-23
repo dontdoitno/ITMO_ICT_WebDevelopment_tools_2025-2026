@@ -6,7 +6,7 @@ from sqlmodel import SQLModel, Field
 
 
 class TransactionType(str, Enum):
-    """Enum representing the type of a financial transaction"""
+    """Enum representing the type of a financial transaction (income / expense)"""
     income = 'income'
     expense = 'expense'
 

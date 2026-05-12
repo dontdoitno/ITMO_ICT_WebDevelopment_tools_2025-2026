@@ -36,11 +36,11 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ЛР 2 - WebDev Tools — Персук Виктория</title>
+    <title>ЛР 2 - Потоки. Процессы. Асинхронность - WebDev Tools — Персук Виктория</title>
     
 
 
-<title>ЛР 2</title>
+<title>ЛР 2 - Потоки. Процессы. Асинхронность</title>
 
 
 
@@ -55,7 +55,7 @@
 
 <!-- Open Graph (Facebook, LinkedIn) -->
 
-<meta property="og:title" content="ЛР 2">
+<meta property="og:title" content="ЛР 2 - Потоки. Процессы. Асинхронность">
 
 
 
@@ -70,7 +70,7 @@
 
 <!-- Twitter Card -->
 
-<meta name="twitter:title" content="ЛР 2">
+<meta name="twitter:title" content="ЛР 2 - Потоки. Процессы. Асинхронность">
 
 
 
@@ -334,7 +334,7 @@
         class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md">
 
         
-        ЛР 2
+        ЛР 2 - Потоки. Процессы. Асинхронность
         
 
         
@@ -383,7 +383,7 @@
             <div id="page-header" class="flex items-start justify-between">
 
                 <h1 class="scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
-                    ЛР 2
+                    ЛР 2 - Потоки. Процессы. Асинхронность
                 </h1>
 
                 <div class="flex items-center gap-2 pt-1.5">
@@ -426,10 +426,77 @@
 
     </div>
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-        <div class="admonition info">
-<p class="admonition-title">В процессе</p>
-<p>Документация будет добавлена после выполнения лабораторной работы.</p>
-</div>
+        <h2 id="1">Задание 1 — Параллельное суммирование</h2>
+<p>Задача: вычислить сумму чисел от 1 до 1 000 000 000, разбив диапазон на части и обработав их параллельно тремя способами.</p>
+<h3 id="multiprocessing">Multiprocessing</h3>
+<p>Диапазон разбивается на <code>cpu_count()</code> частей. Каждая часть обрабатывается в отдельном процессе через <code>multiprocessing.Pool.starmap()</code>. Процессы работают по-настоящему параллельно — у каждого своя память и нет GIL. Частичные суммы собираются в главном процессе через <code>sum()</code>.</p>
+<h3 id="threading">Threading</h3>
+<p>Та же разбивка по диапазонам, но каждая часть считается в отдельном потоке. Потоки пишут результаты в общий список <code>results</code>. GIL не снимается для CPU-вычислений, поэтому потоки фактически не работают параллельно — они чередуются.</p>
+<h3 id="async">Async</h3>
+<p>Каждая часть диапазона оборачивается в <code>asyncio.create_task()</code>, все задачи запускаются через <code>asyncio.gather()</code>. Однако <code>asyncio</code> — это однопоточная конкурентность без переключения на CPU-bound операциях. Функция <code>sum(range(...))</code> не содержит <code>await</code>, поэтому задачи выполняются последовательно внутри одного потока.</p>
+<h3 id="_1">Результаты</h3>
+<table>
+<thead>
+<tr>
+<th>Подход</th>
+<th>Время</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multiprocessing</td>
+<td><strong>10.56 сек</strong></td>
+</tr>
+<tr>
+<td>Threading</td>
+<td>32.68 сек</td>
+</tr>
+<tr>
+<td>Async</td>
+<td>32.72 сек</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_2">Вывод</h3>
+<p>Для <strong>CPU-bound задач</strong> (вычисления) единственный эффективный подход — <code>multiprocessing</code>. Он в ~3 раза быстрее: процессы используют все ядра процессора независимо. Threading и async показали одинаковый результат — оба ограничены GIL и выполняют вычисления в одном ядре, параллелизма нет.</p>
+<hr />
+<h2 id="2-">Задание 2 — Параллельный веб-скрапинг</h2>
+<p>Задача: загрузить три страницы финансовой тематики параллельно, извлечь заголовок <code>&lt;title&gt;</code> и сохранить каждый в таблицу <code>category</code> базы данных lr1.</p>
+<h3 id="threading_1">Threading</h3>
+<p>Три URL обрабатываются параллельно через <code>ThreadPoolExecutor</code>. Каждый поток вызывает <code>requests.get()</code> — блокирующий вызов, но GIL освобождается на время ожидания ответа сети. Все потоки используют один общий <code>engine</code>, каждый открывает свою <code>Session</code>.</p>
+<h3 id="multiprocessing_1">Multiprocessing</h3>
+<p>Каждый URL обрабатывается в отдельном процессе через <code>multiprocessing.Pool.map()</code>. Поскольку у процессов отдельная память, <code>engine</code> создаётся заново <strong>внутри</strong> функции и уничтожается через <code>engine.dispose()</code> по завершении.</p>
+<h3 id="async_1">Async</h3>
+<p>Все три URL запрашиваются одновременно через <code>asyncio.gather()</code>. Для HTTP используется <code>httpx.AsyncClient</code> (неблокирующий), для записи в БД — <code>AsyncSession</code> с драйвером <code>asyncpg</code> (<code>postgresql+asyncpg://</code>). Один event loop переключается между задачами в момент ожидания I/O.</p>
+<h3 id="_3">Результаты</h3>
+<table>
+<thead>
+<tr>
+<th>Подход</th>
+<th>Время</th>
+<th>Примечание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Async</td>
+<td><strong>0.86 сек</strong></td>
+<td>banki.ru вернул 403 (2 из 3 сохранено)</td>
+</tr>
+<tr>
+<td>Multiprocessing</td>
+<td>1.64 сек</td>
+<td>Все 3 сохранено</td>
+</tr>
+<tr>
+<td>Threading</td>
+<td>5.12 сек</td>
+<td>Все 3 сохранено, banki.ru отвечал ~4.5 сек</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_4">Вывод</h3>
+<p>Для <strong>I/O-bound задач</strong> (сетевые запросы) все три подхода дают параллелизм, но с разными накладными расходами. <code>Async</code> теоретически быстрее всего — один поток, нет накладных расходов на создание потоков или процессов. <code>Multiprocessing</code> медленнее из-за накладных расходов на <code>spawn</code> процессов, но оказался быстрее <code>threading</code> в этом прогоне — из-за случайной разницы в скорости ответа banki.ru. Общее время параллельного пула всегда определяется <strong>самым медленным запросом</strong>, поэтому при малом числе URL результаты сильно зависят от конкретных серверов, а не от модели параллелизма.</p>
 
     </div>
 </article>
@@ -505,7 +572,7 @@
                         
                         <a class="text-2xl font-medium" href="lr2.html">
                             
-                            ЛР 2
+                            ЛР 2 - Потоки. Процессы. Асинхронность
                             
                         </a>
                         
@@ -533,6 +600,92 @@
                                 <div view-transition-name="toc" class="no-scrollbar overflow-y-auto px-8">
     <div class="flex flex-col gap-2 p-4 pt-0 text-sm">
         <p class="text-muted-foreground bg-background sticky top-0 h-6 text-xs">On This Page</p>
+        
+        
+        
+        
+        <a href="#1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Задание 1 — Параллельное суммирование
+        </a>
+        
+        
+        <a href="#multiprocessing"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Multiprocessing
+        </a>
+        
+        <a href="#threading"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Threading
+        </a>
+        
+        <a href="#async"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Async
+        </a>
+        
+        <a href="#_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Результаты
+        </a>
+        
+        <a href="#_2"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Вывод
+        </a>
+        
+        
+
+        
+        <a href="#2-"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Задание 2 — Параллельный веб-скрапинг
+        </a>
+        
+        
+        <a href="#threading_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Threading
+        </a>
+        
+        <a href="#multiprocessing_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Multiprocessing
+        </a>
+        
+        <a href="#async_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Async
+        </a>
+        
+        <a href="#_3"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Результаты
+        </a>
+        
+        <a href="#_4"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Вывод
+        </a>
+        
+        
+
+        
+        
+        
         
 
     </div>

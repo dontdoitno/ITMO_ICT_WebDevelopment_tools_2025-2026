@@ -40,4 +40,4 @@ if __name__ == '__main__':
 
     end_time = time.perf_counter() - start_time
 
-    print(f'Total time: {end_time} seconds')
+    print(f'Total time: {end_time:.2f} seconds')

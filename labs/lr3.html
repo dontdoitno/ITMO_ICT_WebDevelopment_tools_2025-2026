@@ -36,11 +36,11 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ЛР 3 - WebDev Tools — Персук Виктория</title>
+    <title>ЛР 3 — Docker + Celery + Redis - WebDev Tools — Персук Виктория</title>
     
 
 
-<title>ЛР 3</title>
+<title>ЛР 3 — Docker + Celery + Redis</title>
 
 
 
@@ -55,7 +55,7 @@
 
 <!-- Open Graph (Facebook, LinkedIn) -->
 
-<meta property="og:title" content="ЛР 3">
+<meta property="og:title" content="ЛР 3 — Docker + Celery + Redis">
 
 
 
@@ -70,7 +70,7 @@
 
 <!-- Twitter Card -->
 
-<meta name="twitter:title" content="ЛР 3">
+<meta name="twitter:title" content="ЛР 3 — Docker + Celery + Redis">
 
 
 
@@ -334,7 +334,7 @@
         class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md">
 
         
-        ЛР 2 - Потоки. Процессы. Асинхронность
+        ЛР 2 — Потоки + процессы + асинхронность
         
 
         
@@ -351,7 +351,7 @@
         class="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer/menu-button flex items-center gap-2 rounded-md p-2 text-left outline-hidden ring-sidebar-ring transition-[width,height,padding] focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 data-[active=true]:bg-accent data-[active=true]:border-accent 3xl:fixed:w-full 3xl:fixed:max-w-48 relative h-[30px] w-fit overflow-visible border border-transparent text-[0.8rem] font-medium after:absolute after:inset-x-0 after:-inset-y-1 after:z-0 after:rounded-md">
 
         
-        ЛР 3
+        ЛР 3 — Docker + Celery + Redis
         
 
         
@@ -383,7 +383,7 @@
             <div id="page-header" class="flex items-start justify-between">
 
                 <h1 class="scroll-m-20 text-4xl font-semibold tracking-tight sm:text-3xl xl:text-4xl">
-                    ЛР 3
+                    ЛР 3 — Docker + Celery + Redis
                 </h1>
 
                 <div class="flex items-center gap-2 pt-1.5">
@@ -413,10 +413,402 @@
 
     </div>
     <div class="typography w-full flex-1 *:data-[slot=alert]:first:mt-0">
-        <div class="admonition info">
-<p class="admonition-title">В процессе</p>
-<p>Документация будет добавлена после выполнения лабораторной работы.</p>
-</div>
+        <h2 id="_1">Описание проекта</h2>
+<p>В данной лабораторной работе FastAPI-приложение из ЛР 1 упаковано в Docker. Добавлен отдельный микросервис-парсер курсов валют, который вызывается из основного приложения как синхронно по HTTP, так и асинхронно через очередь задач Celery + Redis.</p>
+<p><strong>Стек технологий:</strong></p>
+<ul>
+<li><strong>Docker / Docker Compose</strong> — контейнеризация и оркестрация сервисов</li>
+<li><strong>FastAPI</strong> — основное приложение и сервис-парсер</li>
+<li><strong>PostgreSQL</strong> — реляционная база данных</li>
+<li><strong>Redis</strong> — брокер задач и хранилище результатов Celery</li>
+<li><strong>Celery</strong> — очередь асинхронных задач</li>
+<li><strong>Celery Beat</strong> — планировщик периодических задач</li>
+</ul>
+<hr />
+<h2 id="1-docker">Подзадача 1 — Упаковка приложения в Docker</h2>
+<h3 id="_2">Структура проекта</h3>
+<div class="codehilite"><pre><span></span><code>lr3/
+├── docker-compose.yml
+├── .env
+├── app/                    # Основное FastAPI-приложение
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── main.py
+│   ├── connector.py
+│   ├── celery_app.py
+│   ├── tasks.py
+│   ├── api/
+│   ├── models/
+│   ├── schemas/
+│   └── auth/
+└── parser/                 # Отдельный сервис-парсер
+    ├── Dockerfile
+    ├── requirements.txt
+    └── main.py
+</code></pre></div>
+
+<h3 id="dockerfile">Dockerfile основного приложения</h3>
+<p>Dockerfile для основного FastAPI-приложения использует лёгкий базовый образ <code>python:3.12-slim</code>. Зависимости устанавливаются отдельным слоем до копирования кода — это позволяет Docker переиспользовать кэш при повторных сборках, если <code>requirements.txt</code> не менялся.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+
+<span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;uvicorn&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;main:app&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--host&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--port&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;8000&quot;</span><span class="p">]</span>
+</code></pre></div>
+
+<h3 id="dockerfile-">Dockerfile сервиса-парсера</h3>
+<p>Парсер — это независимое FastAPI-приложение с минимальным набором зависимостей: <code>fastapi</code>, <code>uvicorn</code> и <code>requests</code>. Оно слушает порт <code>8001</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+
+<span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;uvicorn&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;main:app&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--host&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;0.0.0.0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;--port&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;8001&quot;</span><span class="p">]</span>
+</code></pre></div>
+
+<h3 id="docker-compose">Docker Compose</h3>
+<p>Файл <code>docker-compose.yml</code> описывает шесть сервисов. <code>db</code> и <code>redis</code> имеют <code>healthcheck</code> — остальные сервисы запускаются только после того, как они будут готовы принимать соединения (<code>condition: service_healthy</code>).</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">db</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres:15</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">POSTGRES_USER</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${POSTGRES_USER}</span>
+<span class="w">      </span><span class="nt">POSTGRES_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${POSTGRES_PASSWORD}</span>
+<span class="w">      </span><span class="nt">POSTGRES_DB</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${POSTGRES_DB}</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;5432:5432&quot;</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgres_data:/var/lib/postgresql/data</span>
+<span class="w">    </span><span class="nt">healthcheck</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;CMD-SHELL&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;pg_isready</span><span class="nv"> </span><span class="s">-U</span><span class="nv"> </span><span class="s">${POSTGRES_USER}</span><span class="nv"> </span><span class="s">-d</span><span class="nv"> </span><span class="s">${POSTGRES_DB}&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span>
+<span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span>
+<span class="w">      </span><span class="nt">retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+
+<span class="w">  </span><span class="nt">redis</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis:7-alpine</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;6379:6379&quot;</span>
+<span class="w">    </span><span class="nt">healthcheck</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">test</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;CMD&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;redis-cli&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;ping&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5s</span>
+<span class="w">      </span><span class="nt">timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3s</span>
+<span class="w">      </span><span class="nt">retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+
+<span class="w">  </span><span class="nt">parser</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./parser</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8001:8001&quot;</span>
+
+<span class="w">  </span><span class="nt">app</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./app</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8000:8000&quot;</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">DB_ADMIN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}</span>
+<span class="w">      </span><span class="nt">JWT_SECRET</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${JWT_SECRET}</span>
+<span class="w">      </span><span class="nt">JWT_ALGORITHM</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${JWT_ALGORITHM}</span>
+<span class="w">      </span><span class="nt">JWT_EXPIRE_MINUTES</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${JWT_EXPIRE_MINUTES}</span>
+<span class="w">      </span><span class="nt">REDIS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis://redis:6379/0</span>
+<span class="w">      </span><span class="nt">PARSER_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://parser:8001</span>
+<span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">db</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_healthy</span>
+<span class="w">      </span><span class="nt">redis</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_healthy</span>
+<span class="w">      </span><span class="nt">parser</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_started</span>
+
+<span class="w">  </span><span class="nt">celery_worker</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./app</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">celery -A celery_app worker --loglevel=info</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">DB_ADMIN</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db/${POSTGRES_DB}</span>
+<span class="w">      </span><span class="nt">REDIS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis://redis:6379/0</span>
+<span class="w">      </span><span class="nt">PARSER_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://parser:8001</span>
+<span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">redis</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_healthy</span>
+<span class="w">      </span><span class="nt">parser</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_started</span>
+
+<span class="w">  </span><span class="nt">celery_beat</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">context</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./app</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">celery -A celery_app beat --loglevel=info</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">REDIS_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis://redis:6379/0</span>
+<span class="w">      </span><span class="nt">PARSER_URL</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://parser:8001</span>
+<span class="w">    </span><span class="nt">depends_on</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">redis</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">service_healthy</span>
+
+<span class="nt">volumes</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">postgres_data</span><span class="p">:</span>
+</code></pre></div>
+
+<p>Все сервисы, которые разделяют одну Docker Compose сеть, обращаются друг к другу по имени сервиса: <code>app</code> обращается к базе данных как <code>db</code>, к Redis — как <code>redis</code>, к парсеру — как <code>parser</code>.</p>
+<h3 id="_3">Инициализация базы данных</h3>
+<p>Вместо Alembic в Docker используется <code>SQLModel.metadata.create_all(engine)</code>, вызываемый в <code>lifespan</code>-обработчике при старте приложения. Это гарантирует, что все таблицы будут созданы до обработки первого запроса.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">asynccontextmanager</span>
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span> <span class="nn">connector</span> <span class="kn">import</span> <span class="n">init_db</span>
+
+<span class="nd">@asynccontextmanager</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">lifespan</span><span class="p">(</span><span class="n">app</span><span class="p">:</span> <span class="n">FastAPI</span><span class="p">):</span>
+    <span class="n">init_db</span><span class="p">()</span>
+    <span class="k">yield</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># connector.py</span>
+<span class="k">def</span> <span class="nf">init_db</span><span class="p">():</span>
+    <span class="n">SQLModel</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="_4">Запуск</h3>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>lr3
+docker-compose<span class="w"> </span>up<span class="w"> </span>--build
+</code></pre></div>
+
+<p>После запуска:</p>
+<ul>
+<li>Основное API: <code>http://localhost:8000</code></li>
+<li>Swagger UI: <code>http://localhost:8000/docs</code></li>
+<li>Сервис-парсер: <code>http://localhost:8001</code></li>
+</ul>
+<hr />
+<h2 id="2-fastapi">Подзадача 2 — Вызов парсера из FastAPI</h2>
+<h3 id="-">Сервис-парсер</h3>
+<p>Парсер — отдельное FastAPI-приложение, которое при вызове <code>POST /parse?base=USD</code> обращается к публичному API <code>open.er-api.com</code> и возвращает актуальные курсы валют относительно заданной базовой валюты.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># parser/main.py</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s1">&#39;Currency Exchange Rate Parser&#39;</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/parse&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">parse_exchange_rates</span><span class="p">(</span><span class="n">base</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;USD&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;https://open.er-api.com/v6/latest/</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Parsing completed&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_code&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;rates&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;rates&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;time_last_update&#39;</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;time_last_update_utc&#39;</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+</code></pre></div>
+
+<p>Парсер запущен в отдельном контейнере и недоступен напрямую с хоста (или доступен на порту <code>8001</code> — исключительно для отладки). Основное приложение обращается к нему внутри Docker-сети по адресу <code>http://parser:8001</code>.</p>
+<h3 id="_5">Синхронный эндпоинт в основном приложении</h3>
+<p>В основном приложении добавлен роутер <code>api/parse.py</code>. Эндпоинт <code>POST /parse/sync</code> принимает параметр <code>base</code>, делает HTTP-запрос к сервису-парсеру и синхронно возвращает результат клиенту.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># app/api/parse.py</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">HTTPException</span>
+
+<span class="n">PARSER_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;PARSER_URL&#39;</span><span class="p">,</span> <span class="s1">&#39;http://parser:8001&#39;</span><span class="p">)</span>
+
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;/parse&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;parser&#39;</span><span class="p">])</span>
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/sync&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">parse_sync</span><span class="p">(</span><span class="n">base</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;USD&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">PARSER_URL</span><span class="si">}</span><span class="s1">/parse&#39;</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="n">base</span><span class="p">},</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+</code></pre></div>
+
+<p><strong>Схема взаимодействия:</strong></p>
+<div class="codehilite"><pre><span></span><code>Клиент → POST /parse/sync?base=EUR
+         → app (порт 8000)
+         → POST http://parser:8001/parse?base=EUR
+         → open.er-api.com
+         ← {&quot;base&quot;: &quot;EUR&quot;, &quot;rates&quot;: {...}}
+         ← ответ клиенту
+</code></pre></div>
+
+<hr />
+<h2 id="3-celery">Подзадача 3 — Вызов парсера через очередь Celery</h2>
+<h3 id="celery">Конфигурация Celery</h3>
+<p>Celery-приложение создаётся в файле <code>celery_app.py</code>. В качестве брокера сообщений и бэкенда для хранения результатов задач используется Redis.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># app/celery_app.py</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">celery</span> <span class="kn">import</span> <span class="n">Celery</span>
+
+<span class="n">REDIS_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="p">,</span> <span class="s1">&#39;redis://redis:6379/0&#39;</span><span class="p">)</span>
+
+<span class="n">celery_app</span> <span class="o">=</span> <span class="n">Celery</span><span class="p">(</span>
+    <span class="s1">&#39;finance_app&#39;</span><span class="p">,</span>
+    <span class="n">broker</span><span class="o">=</span><span class="n">REDIS_URL</span><span class="p">,</span>
+    <span class="n">backend</span><span class="o">=</span><span class="n">REDIS_URL</span><span class="p">,</span>
+    <span class="n">include</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">celery_app</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+    <span class="n">task_serializer</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
+    <span class="n">result_serializer</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">,</span>
+    <span class="n">accept_content</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;json&#39;</span><span class="p">],</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s1">&#39;UTC&#39;</span><span class="p">,</span>
+    <span class="n">enable_utc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="celery_1">Задача Celery</h3>
+<p>Задача <code>parse_exchange_rates_task</code> вызывает парсер по HTTP. Она декорирована <code>@celery_app.task</code> — Celery сериализует её в очередь Redis, воркер принимает и выполняет в фоне.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># app/tasks.py</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">celery_app</span> <span class="kn">import</span> <span class="n">celery_app</span>
+
+<span class="n">PARSER_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;PARSER_URL&#39;</span><span class="p">,</span> <span class="s1">&#39;http://parser:8001&#39;</span><span class="p">)</span>
+
+<span class="nd">@celery_app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;tasks.parse_exchange_rates_task&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">parse_exchange_rates_task</span><span class="p">(</span><span class="n">base</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;USD&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">PARSER_URL</span><span class="si">}</span><span class="s1">/parse&#39;</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;base&#39;</span><span class="p">:</span> <span class="n">base</span><span class="p">},</span>
+        <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</code></pre></div>
+
+<h3 id="_6">Асинхронные эндпоинты</h3>
+<p>В роутере <code>api/parse.py</code> добавлены два эндпоинта для работы с очередью:</p>
+<p><strong><code>POST /parse/async</code></strong> — ставит задачу в очередь и немедленно возвращает <code>task_id</code>, не ожидая завершения:</p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;/async&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">parse_async</span><span class="p">(</span><span class="n">base</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;USD&#39;</span><span class="p">):</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">parse_exchange_rates_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Task queued successfully&#39;</span><span class="p">}</span>
+</code></pre></div>
+
+<p><strong><code>GET /parse/task/{task_id}</code></strong> — позволяет опросить статус задачи по её идентификатору:</p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/task/</span><span class="si">{task_id}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_task_result</span><span class="p">(</span><span class="n">task_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">task</span> <span class="o">=</span> <span class="n">celery_app</span><span class="o">.</span><span class="n">AsyncResult</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">task</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;PENDING&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;pending&#39;</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="n">task</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;SUCCESS&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;success&#39;</span><span class="p">,</span> <span class="s1">&#39;result&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="n">task</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;FAILURE&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="s1">&#39;failed&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">result</span><span class="p">)}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">task</span><span class="o">.</span><span class="n">state</span><span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Схема взаимодействия:</strong></p>
+<div class="codehilite"><pre><span></span><code>Клиент → POST /parse/async?base=USD
+         ← {&quot;task_id&quot;: &quot;abc-123&quot;, &quot;message&quot;: &quot;Task queued&quot;}
+
+              Redis (очередь)
+              ↓ задача поставлена
+         celery_worker → POST http://parser:8001/parse?base=USD
+                        → open.er-api.com
+                        ← результат сохранён в Redis
+
+Клиент → GET /parse/task/abc-123
+         ← {&quot;status&quot;: &quot;success&quot;, &quot;result&quot;: {&quot;base&quot;: &quot;USD&quot;, &quot;rates&quot;: {...}}}
+</code></pre></div>
+
+<h3 id="celery-beat">Периодические задачи (Celery Beat)</h3>
+<p>Celery Beat — это планировщик, который запускает задачи по расписанию. Конфигурация <code>beat_schedule</code> задаётся в <code>celery_app.py</code>. Раз в час автоматически запускается парсинг курсов USD без участия пользователя:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">celery_app</span><span class="o">.</span><span class="n">conf</span><span class="o">.</span><span class="n">beat_schedule</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;fetch-usd-rates-every-hour&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;task&#39;</span><span class="p">:</span> <span class="s1">&#39;tasks.parse_exchange_rates_task&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;schedule&#39;</span><span class="p">:</span> <span class="mf">3600.0</span><span class="p">,</span>  <span class="c1"># каждые 3600 секунд (1 час)</span>
+        <span class="s1">&#39;args&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;USD&#39;</span><span class="p">,),</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Celery Beat запущен в отдельном контейнере <code>celery_beat</code> с командой <code>celery -A celery_app beat</code>. Воркер (<code>celery_worker</code>) и планировщик (<code>celery_beat</code>) — разные процессы, используют один и тот же образ <code>app</code>.</p>
+<h3 id="_7">Список всех задач</h3>
+<p>Эндпоинт <code>GET /parse/tasks</code> возвращает все когда-либо поставленные в очередь задачи с их текущим статусом.</p>
+<p>Поскольку Celery не ведёт центральный реестр задач, при каждом вызове <code>POST /parse/async</code> <code>task_id</code> сохраняется в Redis-сет <code>parse_task_ids</code>. <code>GET /parse/tasks</code> читает все ID из этого сета и запрашивает актуальный статус каждой задачи через <code>AsyncResult</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">redis_client</span> <span class="o">=</span> <span class="n">redis</span><span class="o">.</span><span class="n">from_url</span><span class="p">(</span><span class="n">REDIS_URL</span><span class="p">,</span> <span class="n">decode_responses</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">TASKS_KEY</span> <span class="o">=</span> <span class="s1">&#39;parse_task_ids&#39;</span>
+
+<span class="c1"># при постановке в очередь:</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">parse_exchange_rates_task</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+<span class="n">redis_client</span><span class="o">.</span><span class="n">sadd</span><span class="p">(</span><span class="n">TASKS_KEY</span><span class="p">,</span> <span class="n">task</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+<span class="c1"># эндпоинт списка:</span>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/tasks&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">list_tasks</span><span class="p">():</span>
+    <span class="n">task_ids</span> <span class="o">=</span> <span class="n">redis_client</span><span class="o">.</span><span class="n">smembers</span><span class="p">(</span><span class="n">TASKS_KEY</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;task_id&#39;</span><span class="p">:</span> <span class="n">tid</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">:</span> <span class="n">celery_app</span><span class="o">.</span><span class="n">AsyncResult</span><span class="p">(</span><span class="n">tid</span><span class="p">)</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">lower</span><span class="p">()}</span>
+        <span class="k">for</span> <span class="n">tid</span> <span class="ow">in</span> <span class="n">task_ids</span>
+    <span class="p">]</span>
+</code></pre></div>
+
+<p>Пример ответа:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc-123&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;def-456&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pending&quot;</span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span><span class="nt">&quot;task_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ghi-789&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;failure&quot;</span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+
+<h3 id="_8">Итоговая таблица эндпоинтов парсера</h3>
+<table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Путь</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST</code></td>
+<td><code>/parse/sync?base=USD</code></td>
+<td>Синхронный вызов парсера, ждёт ответа</td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/parse/async?base=USD</code></td>
+<td>Постановка задачи в очередь, возвращает <code>task_id</code></td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/parse/tasks</code></td>
+<td>Список всех поставленных задач и их статусов</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/parse/task/{task_id}</code></td>
+<td>Проверка статуса и результата конкретной задачи</td>
+</tr>
+</tbody>
+</table>
 
     </div>
 </article>
@@ -432,7 +824,7 @@
             <path d="M5 12l6 6"></path>
             <path d="M5 12l6 -6"></path>
         </svg>
-        ЛР 2 - Потоки. Процессы. Асинхронность
+        ЛР 2 — Потоки + процессы + асинхронность
     </a>
     
     
@@ -479,13 +871,13 @@
                         
                         <a class="text-2xl font-medium" href="lr2.html">
                             
-                            ЛР 2 - Потоки. Процессы. Асинхронность
+                            ЛР 2 — Потоки + процессы + асинхронность
                             
                         </a>
                         
                         <a class="text-2xl font-medium" href="lr3.html">
                             
-                            ЛР 3
+                            ЛР 3 — Docker + Celery + Redis
                             
                         </a>
                         
@@ -507,6 +899,134 @@
                                 <div view-transition-name="toc" class="no-scrollbar overflow-y-auto px-8">
     <div class="flex flex-col gap-2 p-4 pt-0 text-sm">
         <p class="text-muted-foreground bg-background sticky top-0 h-6 text-xs">On This Page</p>
+        
+        
+        
+        
+        <a href="#_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Описание проекта
+        </a>
+        
+
+        
+        <a href="#1-docker"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Подзадача 1 — Упаковка приложения в Docker
+        </a>
+        
+        
+        <a href="#_2"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Структура проекта
+        </a>
+        
+        <a href="#dockerfile"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Dockerfile основного приложения
+        </a>
+        
+        <a href="#dockerfile-"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Dockerfile сервиса-парсера
+        </a>
+        
+        <a href="#docker-compose"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Docker Compose
+        </a>
+        
+        <a href="#_3"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Инициализация базы данных
+        </a>
+        
+        <a href="#_4"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Запуск
+        </a>
+        
+        
+
+        
+        <a href="#2-fastapi"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Подзадача 2 — Вызов парсера из FastAPI
+        </a>
+        
+        
+        <a href="#-"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Сервис-парсер
+        </a>
+        
+        <a href="#_5"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Синхронный эндпоинт в основном приложении
+        </a>
+        
+        
+
+        
+        <a href="#3-celery"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="2">
+            Подзадача 3 — Вызов парсера через очередь Celery
+        </a>
+        
+        
+        <a href="#celery"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Конфигурация Celery
+        </a>
+        
+        <a href="#celery_1"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Задача Celery
+        </a>
+        
+        <a href="#_6"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Асинхронные эндпоинты
+        </a>
+        
+        <a href="#celery-beat"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Периодические задачи (Celery Beat)
+        </a>
+        
+        <a href="#_7"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Список всех задач
+        </a>
+        
+        <a href="#_8"
+            class="text-muted-foreground hover:text-foreground data-[active=true]:text-foreground text-[0.8rem] no-underline transition-colors data-[depth=3]:pl-4 data-[depth=4]:pl-6"
+            data-active="false" data-depth="3">
+            Итоговая таблица эндпоинтов парсера
+        </a>
+        
+        
+
+        
+        
+        
         
 
     </div>

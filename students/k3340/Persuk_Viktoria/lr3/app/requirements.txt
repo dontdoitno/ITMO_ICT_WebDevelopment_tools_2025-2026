@@ -1,0 +1,11 @@
+fastapi==0.115.12
+uvicorn==0.34.2
+sqlmodel==0.0.22
+sqlalchemy==2.0.40
+psycopg2-binary==2.9.10
+python-dotenv==1.1.0
+pyjwt==2.9.0
+passlib[bcrypt]==1.7.4
+requests==2.32.3
+celery==5.4.0
+redis==5.2.1
